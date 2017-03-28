@@ -12,3 +12,7 @@ git push -u origin master
 git remote add origin https://github.com/ChanYiZhou/daily_nuts.git
 git push -u origin master
 
+
+
+# ==== pull an existing repository from the command line
+git pull origin master
