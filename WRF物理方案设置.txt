@@ -1,18 +1,18 @@
 WRF物理方案设置
 （1）云南（只针对27，9，3公里有效）
-	Morrison显式微物理方案；!
+	Morrison显式微物理方案；
 	BMJ积云参数化方案（9km和3km 区域无积云参数化方案）；
-	MYJ边界层方案；      !
-	RRTM 长波辐射方案；    !
-	Goddard 短波辐射方案； !
-	辐射方案每30分钟计算一次； !
-	Noah陆面模式； !
-	2,Monin-Obukhov (Janjic)近地层。(有问题)
+	MYJ边界层方案；      
+	RRTM 长波辐射方案；    
+	Goddard 短波辐射方案； 
+	辐射方案每30分钟计算一次； 
+	Noah陆面模式； 
+	2,Monin-Obukhov (Janjic)近地层。
 （2）河北（只针对27, 9, 3公里有效）
-	WSM6 显式微物理方案； !
+	WSM6 显式微物理方案； 
 	KF（new Eta）积云参数化方案； 
-	ACM2边界层方案；      !
-	RRTM 长波辐射方案；   !
-	Dudhia 短波辐射方案； !
-	Noah LSM 陆面模式；   !
-	MM5 Monin-Obukhov 近地层 !
+	ACM2边界层方案；      
+	RRTM 长波辐射方案；   
+	Dudhia 短波辐射方案； 
+	Noah LSM 陆面模式；   
+	MM5 Monin-Obukhov 近地层 
