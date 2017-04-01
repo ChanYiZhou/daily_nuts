@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 	over_RGB = list(np.array(StdRGB_RH[-1])/255.0)
 	under_RGB = list(np.array(StdRGB_RH[0])/255.0)
-	Bcmap_RGB = StdRGB_RH[1:len(StdRGB_RH)]
+	Bcmap_RGB = StdRGB_RH[1:len(StdRGB_RH)-1]
 	Bcmap_RGB = np.array(Bcmap_RGB)/255.0
 	Bcmap_RGB = [list(_) for _ in Bcmap_RGB]
 	cmap = mpl.colors.ListedColormap(Bcmap_RGB)
@@ -39,7 +39,7 @@ if __name__ == '__main__':
 	norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
 	cb = mpl.colorbar.ColorbarBase(ax, cmap=cmap,
 	                                norm=norm,
-	                                boundaries=[-5] + bounds + [100],
+	                                boundaries=[1] + bounds + [100],
 	                                extend='both',
 	                                # Make the length of each extension
 	                                # the same as the length of the
