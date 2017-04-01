@@ -29,8 +29,9 @@ ELON, ELAT = 112.25, 27.0
 NLONS = (ELON - SLON)/ECres + 1
 NLATS = (ELAT - SLAT)/ECres + 1
 NLONS, NLATS = int(NLONS), int(NLATS)
-shpDir = os.path.join(r'/Users/chan/Desktop','ECdata_Plot','src','shp')  # shapefile的路径
-OutFigDir = os.path.join(r'/Users/chan/Desktop','ECdata_Plot','figs','rain') # 输出图片的路径
+srcDir = os.path.join(r'/root','PlotECdata','src')
+shpDir = os.path.join(r'/root','PlotECdata','src','shp')  # shapefile的路径
+OutFigDir = os.path.join(r'/root','PlotECdata','figs','rain') # 输出图片的路径
 Atime = range(24,242,12) # 降水的预报时效
 Atime = [str(_).zfill(3) for _ in Atime]
 Map = Basemap(projection='cyl', resolution='c', llcrnrlat=SLAT,
@@ -52,7 +53,7 @@ NORM = matplotlib.colors.BoundaryNorm(Bounds, CMAP.N, clip=False)
 
 
 # 配置汉字字体，根据中文字体文件库及其位置来配置，须自行设定
-MYFONTFILE = 'msyh.ttc'
+MYFONTFILE = os.path.join(srcDir,'msyh.ttc')
 FONTWeight = ['ultralight','extra bold']
 FONTWeight = ['bold','ultralight','normal','extra bold']
 FONTSize = [5, 8, 8, 12]
@@ -79,7 +80,7 @@ def plt_Rain(x,y,rain,timestr):
 				verticalalignment='top',
 				)
 
-	# 设置图题s
+	# 设置图题
 	init_time, endH = timestr[:10], int(timestr[11:])
 	SDH = timestr[6:10]
 	AEDH = datetime(int(timestr[:4]),int(timestr[4:6]),int(timestr[6:8]),int(timestr[8:10])) + timedelta(hours=24)
@@ -130,56 +131,69 @@ def plt_Rain(x,y,rain,timestr):
 	# plt.show()
 
 def main():
-	year, month, day, prehour = 2017, 3, 06, '00'
-	for hours in Atime[:1]:
-		print hours
-		# 1. read ecmwf data
-		if int(prehour) + int(hours) == 24:
-			hourLST = ['24']
-		else:
-			Ehours = hours
-			Shours = int(prehour) + int(hours) - 24
-			hourLST = [Shours, Ehours]
+	# 1. set time
+	Date_fmt  = '%Y%m%d%H'
+	now      = datetime.now()
+	chkdatetime  = now- timedelta(hours=8)
+	chkTime   = chkdatetime.strftime(Date_fmt)[8:]
+    
+	if chkTime in ['08', '20']:
+		Transdatetime = now - timedelta(hours=16)
+		NeedTime     = Transdatetime.strftime(Date_fmt)
+		year, month = int(NeedTime[:4]), int(NeedTime[4:6])
+		day, hour = int(NeedTime[6:8]), NeedTime[8:10]
+		prehour = hour
 
-		Rain_24cumu = []
-		for ihours in hourLST:
-			try:
-				output = readECMWF_inbox(ihours, year, month, day, prehour)
-			except Exception as e:
-				raise e
-				continue 
-			rainfall = np.array(output['rainfall']) # 前ihours累计降水
-			lats = output['lats'][::-1]
-			lons = output['lons']
-
-			latsize = len(list(set(lats)))
-			lonsize = len(list(set(lons)))
-			SLAT_ID, SLON_ID = lats.index(SLAT)/lonsize, lons.index(SLON)
-			ELAT_ID, ELON_ID = lats.index(ELAT)/lonsize, lons.index(ELON)
-
-			XIn0 = np.arange(SLON,ELON+0.5*ECres,ECres)
-			YIn0 = np.arange(SLAT,ELAT+0.5*ECres,ECres)
-			x, y = np.meshgrid(XIn0, YIn0)
-			
-			rain_cumu = rainfall.reshape((latsize,lonsize))[::-1,:][SLAT_ID:ELAT_ID+1,SLON_ID:ELON_ID+1]
-			Rain_24cumu.append(list(rain_cumu))
-		if not Rain_24cumu: continue 
-		if len(hourLST) == 2:
-			if len(Rain_24cumu) == 2:
-				Rain_24cumu = np.array(Rain_24cumu[1]) - np.array(Rain_24cumu[0])
+		for hours in Atime:
+			print hours
+			# 1. read ecmwf data
+			if int(prehour) + int(hours) == 24:
+				hourLST = ['24']
 			else:
-				continue
-		else:
-			Rain_24cumu = np.array(Rain_24cumu[0])
+				Ehours = hours
+				Shours = int(prehour) + int(hours) - 24
+				hourLST = [Shours, Ehours]
 
-		print 'hours list:', hourLST
-		print '24 hours acumulated rain:', Rain_24cumu
-		print ''
+			Rain_24cumu = []
+			for ihours in hourLST:
+				try:
+					output = readECMWF_inbox(ihours, year, month, day, prehour)
+				except Exception as e:
+					raise e
+					continue 
+				rainfall = np.array(output['rainfall']) # 前ihours累计降水
+				lats = output['lats'][::-1]
+				lons = output['lons']
 
-		# 2.绘制广西降水阴影图
-		TimeST = datetime(year, month, day, int(prehour)) + timedelta(hours=int(hours)) - timedelta(hours=24)
-		timestr = TimeST.strftime('%Y%m%d%H') + '_' + hours
-		plt_Rain(x, y, Rain_24cumu, timestr)
+				latsize = len(list(set(lats)))
+				lonsize = len(list(set(lons)))
+				SLAT_ID, SLON_ID = lats.index(SLAT)/lonsize, lons.index(SLON)
+				ELAT_ID, ELON_ID = lats.index(ELAT)/lonsize, lons.index(ELON)
+
+				XIn0 = np.arange(SLON,ELON+0.5*ECres,ECres)
+				YIn0 = np.arange(SLAT,ELAT+0.5*ECres,ECres)
+				x, y = np.meshgrid(XIn0, YIn0)
+				
+				rain_cumu = rainfall.reshape((latsize,lonsize))[::-1,:][SLAT_ID:ELAT_ID+1,SLON_ID:ELON_ID+1]
+				Rain_24cumu.append(list(rain_cumu))
+
+			if not Rain_24cumu: continue 
+			if len(hourLST) == 2:
+				if len(Rain_24cumu) == 2:
+					Rain_24cumu = np.array(Rain_24cumu[1]) - np.array(Rain_24cumu[0])
+				else:
+					continue
+			else:
+				Rain_24cumu = np.array(Rain_24cumu[0])
+
+			print 'hours list:', hourLST
+			print '24 hours acumulated rain:', Rain_24cumu
+			print ''
+
+			# 2.绘制广西降水阴影图
+			TimeST = datetime(year, month, day, int(prehour)) + timedelta(hours=int(hours)) - timedelta(hours=24)
+			timestr = TimeST.strftime('%Y%m%d%H') + '_' + hours
+			plt_Rain(x, y, Rain_24cumu, timestr)
 	
 
 # ========== 默认情况下，调用主程序 ==========
