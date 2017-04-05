@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # -*- version: python2.7 -*-
-
+# ==================== refer URL =========================== #
+# http://matplotlib.org/examples/pylab_examples/barb_demo.html
+# ==================== refer URL =========================== # 
 
 import os
 import time
@@ -13,25 +15,24 @@ import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.mpl.ticker import LongitudeFormatter,LatitudeFormatter
+from cartopy.examples.arrows import sample_data
 from mpl_toolkits.basemap import Basemap
 from datetime import datetime,timedelta
 
 
 # 导入自定义模块
-from ECMWF_PRES import *
+from ECMWF import *
 
 # 设置全局变量
-# level 1000hPa, 850hPa,500hPa;
-Lev = 850
-ECres = 0.25 # unit is deg, 数据空间分辨率
-SLON, ELON = 104.25, 112.25
-SLAT, ELAT = 20.5, 27.0
+ECres = 0.125 # unit is deg, 数据空间分辨率
+SLON, SLAT = 104.25, 20.5
+ELON, ELAT = 112.25, 27.0
 NLONS = (ELON - SLON)/ECres + 1
 NLATS = (ELAT - SLAT)/ECres + 1
 NLONS, NLATS = int(NLONS), int(NLATS)
 srcDir = os.path.join(r'/root','PlotECdata','src')
 shpDir = os.path.join(r'/root','PlotECdata','src','shp')  # shapefile的路径
-OutFigDir = os.path.join(r'/root','PlotECdata','figs','pres') # 输出图片的路径
+OutFigDir = os.path.join(r'/root','PlotECdata','figs','wind') # 输出图片的路径
 Atime = range(0,242,12) # 风场的预报时效
 Atime = [str(_).zfill(3) for _ in Atime]
 Map = Basemap(projection='cyl', resolution='c', llcrnrlat=SLAT,
@@ -53,6 +54,7 @@ MYFONT,MYFONT_TITLE = [
 def plt_WndBarb(XIn, YIn, U, V, timestr):
 	fig = plt.figure()
 	ax = fig.add_axes([0.1, 0.1, 0.70, 0.75],projection=ccrs.PlateCarree())
+	# ax = plt.subplot(1,1,1,projection=ccrs.PlateCarree())
 
 	Map.readshapefile(os.path.join(shpDir,'bou2_4p'), name='whatever', drawbounds=True,
 	                linewidth=0.5, color='black')
@@ -72,9 +74,10 @@ def plt_WndBarb(XIn, YIn, U, V, timestr):
 	axm = plt.gca()
 	xlim, ylim = axm.get_xlim(), axm.get_ylim()
 	fcstdates = timestr[:8]+'_'+timestr[8:10]
-	hours = timestr[-2:]
+	hours = timestr[-3:]
+	if int(hours) < 100: hours = hours[1:]
 	plt.text(xlim[0]+(xlim[1]-xlim[0])*0.25, ylim[1]+(ylim[1]-ylim[0])*0.08,
-	    u'广 西 全 区 未 来 '+hours+u' 小 时 850hPa 风 场 预 报', fontproperties=MYFONT_TITLE)
+	    u'广 西 全 区 未 来 '+hours+u' 小 时 10m 风 场 预 报', fontproperties=MYFONT_TITLE)
 	plt.text(xlim[0]+(xlim[1]-xlim[0])*0.02, ylim[1]+(ylim[1]-ylim[0])*0.02,
 	    u'起 报 时 间 ：'+fcstdates, fontproperties=MYFONT)
 
@@ -104,12 +107,12 @@ def plt_WndBarb(XIn, YIn, U, V, timestr):
 	  axn.set_frame_on(False)
 
         # plt.show()
-	flename = timestr + '_' + '850Windbarb.png'
+	flename = timestr + '_' + 'Windbarb.png'
 	OutFigPath = os.path.join(OutFigDir,fcstdates)
 	if not os.path.exists(OutFigPath): os.makedirs(OutFigPath)
 	plt.savefig(OutFigPath+'/'+flename, bbox_inches='tight', pad_inches=0.3, dpi=300)
 	plt.clf()
-	plt.close(fig)
+        plt.close(fig)
 	
 
 
@@ -121,9 +124,9 @@ def plt_WndVector(X,Y,U,V,timestr):
 	                linewidth=0.5, color='black')
 	M = np.hypot(U,V)
 	#ax.quiver(X, Y, U, V, M, transform=vector_crs, regrid_shape=30)
-	Q = ax.quiver(X, Y, U, V, M, units='x', pivot='tip', width=0.012,
-	    scale=4 / 0.15)
-	qk = ax.quiverkey(Q, 0.86, 0.92, 2.5, r'$10 \frac{m}{s}$', labelpos='E',
+	Q = ax.quiver(X, Y, U, V, units='x', pivot='tip', color='b', width=0.016,
+	    scale=2 / 0.15)
+	qk = ax.quiverkey(Q, 0.86, 0.92, 2, r'$4 \frac{m}{s}$', labelpos='E',
 	    coordinates='figure')
 
 	# 标注坐标轴
@@ -138,58 +141,65 @@ def plt_WndVector(X,Y,U,V,timestr):
 	axm = plt.gca()
 	xlim, ylim = axm.get_xlim(), axm.get_ylim()
 	fcstdates = timestr[:8]+'_'+timestr[8:10]
-	hours = timestr[-2:]
+	hours = timestr[-3:]
+	if int(hours) < 100: hours = hours[1:]
 	plt.text(xlim[0]+(xlim[1]-xlim[0])*0.25, ylim[1]+(ylim[1]-ylim[0])*0.08,
-	    u'广 西 全 区 未 来 '+hours+u' 小 时 850hPa 风 场 预 报 图', fontproperties=MYFONT_TITLE)
+	    u'广 西 全 区 未 来 '+hours+u' 小 时 10m 风 场 预 报', fontproperties=MYFONT_TITLE)
 	plt.text(xlim[0]+(xlim[1]-xlim[0])*0.02, ylim[1]+(ylim[1]-ylim[0])*0.02,
 	    u'起 报 时 间 ：'+fcstdates, fontproperties=MYFONT)
 
 	# plt.show()
-	flename = timestr + '_' + '850WindVector.png'
+	flename = timestr + '_' + 'WindVector.png'
 	OutFigPath = os.path.join(OutFigDir,fcstdates)
 	plt.savefig(OutFigPath+'/'+flename, bbox_inches='tight', pad_inches=0.3, dpi=300)
 	plt.clf()
-	plt.close(fig)
+        plt.close(fig)
 	
 
 
 def main():
-	for idelta in range(1):
-		dates = datetime(2017, 4, 4) + timedelta(days=idelta)
-		datestr = dates.strftime('%Y%m%d')
-		year = int(datestr[:4])
-		month, day = int(datestr[4:6]), int(datestr[6:])
-		for prehour in ['12']: # '00', '12'
-			for hours in Atime[:1]:  # [2:3]:
-			    # 2. read ecmwf data
-				# hours, year, month, day, prehour = '24', 2017, 3, 6, '00'
-				try:
-					output = readECMWF_inbox(hours, year, month, day, prehour, LevNum)
-				except Exception as e:
-					raise e
-					continue
-				UIn = np.array(output['uwind'])
-				VIn = np.array(output['vwind'])
-				lons = output['lons']
-				lats = output['lats'][::-1]
+	# 1. set time
+	Date_fmt  = '%Y%m%d%H'
+	now      = datetime.now()
+	chkdatetime  = now- timedelta(hours=8)
+	chkTime   = chkdatetime.strftime(Date_fmt)[8:]
+    
+	if chkTime in ['08', '20']:
+		Transdatetime = now - timedelta(hours=16)
+		NeedTime     = Transdatetime.strftime(Date_fmt)
+		year, month = int(NeedTime[:4]), int(NeedTime[4:6])
+		day, hour = int(NeedTime[6:8]), NeedTime[8:10]
 
-				latsize = len(list(set(lats)))
-				lonsize = len(list(set(lons)))
-				SLAT_ID, SLON_ID = lats.index(SLAT)/lonsize, lons.index(SLON)
-				ELAT_ID, ELON_ID = lats.index(ELAT)/lonsize, lons.index(ELON)
+		for hours in Atime:
+		    # 2. read ecmwf data
+			# hours, year, month, day, prehour = '24', 2017, 3, 6, '00'
+			prehour = hour
+			output = readECMWF_inbox(hours, year, month, day, prehour)
+			UIn = np.array(output['uwind'])
+			VIn = np.array(output['vwind'])
+			lons = output['lons']
+			lats = output['lats'][::-1]
 
-				XIn = np.arange(SLON,ELON+0.5*ECres,ECres)
-				YIn = np.arange(SLAT,ELAT+0.5*ECres,ECres)
-				XIn, YIn = np.meshgrid(XIn, YIn)
+			latsize = len(list(set(lats)))
+			lonsize = len(list(set(lons)))
+			SLAT_ID, SLON_ID = lats.index(SLAT)/lonsize, lons.index(SLON)
+			ELAT_ID, ELON_ID = lats.index(ELAT)/lonsize, lons.index(ELON)
 
-				uwnd = UIn.reshape((latsize,lonsize))[::-1,:][SLAT_ID:ELAT_ID+1,SLON_ID:ELON_ID+1]
-				vwnd = VIn.reshape((latsize,lonsize))[::-1,:][SLAT_ID:ELAT_ID+1,SLON_ID:ELON_ID+1]
+			XIn = np.arange(SLON,ELON+0.5*ECres,ECres)
+			XIn.shape = 1, NLONS
+			XIn = XIn.repeat(NLATS,axis=0)
+			YIn = np.arange(SLAT,ELAT+0.5*ECres,ECres)
+			YIn.shape = NLATS, 1
+			YIn = YIn.repeat(NLONS,axis=1)
 
-				# 3. plot uv wind at 10m level
-				fcstdates = datetime(year,month,day,int(prehour)).strftime('%Y%m%d%H')
-				timestr = fcstdates+'_'+ hours
-				plt_WndBarb(XIn[::3,::3],YIn[::3,::3],uwnd[::3,::3],vwnd[::3,::3],timestr)
-				# plt_WndVector(XIn[::4,::4],YIn[::4,::4],uwnd[::4,::4],vwnd[::4,::4],timestr)
+			uwnd = UIn.reshape((latsize,lonsize))[::-1,:][SLAT_ID:ELAT_ID+1,SLON_ID:ELON_ID+1]
+			vwnd = VIn.reshape((latsize,lonsize))[::-1,:][SLAT_ID:ELAT_ID+1,SLON_ID:ELON_ID+1]
+
+			# 3. plot uv wind at 10m level
+			fcstdates = datetime(year,month,day,int(prehour)).strftime('%Y%m%d%H')
+			timestr = fcstdates+'_'+ hours
+			plt_WndBarb(XIn[::4,::4],YIn[::4,::4],uwnd[::4,::4],vwnd[::4,::4],timestr)
+			plt_WndVector(XIn[::4,::4],YIn[::4,::4],uwnd[::4,::4],vwnd[::4,::4],timestr)
 
 if __name__ == '__main__':
     main()
